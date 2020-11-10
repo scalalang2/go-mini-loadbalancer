@@ -3,6 +3,7 @@ package main
 
 import (
 	"container/heap"
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -56,6 +57,49 @@ func (p *Pool) Pop() interface{} {
 	return item
 }
 
+// Mini-Loader Balancer 구현
+func (b *Balancer) balance(req chan Request) {
+	for {
+		select {
+			case request := <-req:
+				b.dispatch(request)
+			case w:= <-b.done:
+				b.completed(w)
+		}
+
+		b.print()
+	}
+}
+
+func (b *Balancer) dispatch(req Request) {
+	w := heap.Pop(&b.pool).(*Work)
+	w.wok <- req
+	w.pending++
+	heap.Push(&b.pool, w)
+}
+
+func (b *Balancer) completed(w *Work) {
+	w.pending--
+	heap.Remove(&b.pool, w.idx)
+	heap.Push(&b.pool, w)
+}
+
+func (b *Balancer) print() {
+	sum := 0
+	sumsq := 0
+
+	for _, w := range b.pool {
+		fmt.Printf("%d ", w.pending)
+		sum += w.pending
+		sumsq += w.pending * w.pending
+	}
+
+	avg := float64(sum) / float64(len(b.pool))
+	variance := float64(sumsq) / float64(len(b.pool)) - avg * avg
+	fmt.Printf(" %.2f %.2f \n", avg, variance)
+}
+
+// Work 구현
 func (w *Work) doWork(done chan *Work) {
 	for {
 		req := <-w.wok
@@ -66,7 +110,7 @@ func (w *Work) doWork(done chan *Work) {
 
 func InitBalancer() *Balancer {
 	nWorker := 10
-	nRequester := 100
+	nRequester := 1000
 	done := make(chan *Work, nWorker)
 	b := &Balancer {
 		make(Pool, 0, nWorker),
@@ -97,5 +141,9 @@ func createAndRequest(req chan Request) {
 }
 
 func main() {
-
+	work := make(chan Request)
+	for i:= 0; i < 1000; i++ {
+		go createAndRequest(work)
+	}
+	InitBalancer().balance(work)
 }
