@@ -1,4 +1,3 @@
-// Reference: https://gist.github.com/rushilgupta/228dfdf379121cb9426d5e90d34c5b96
 package main
 
 import (

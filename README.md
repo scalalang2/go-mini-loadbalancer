@@ -22,3 +22,6 @@ Mini Load Balancer written in Go language
 97 97 98 98 97 98 98 98 98 98  97.70 0.21 
 ...
 ```
+
+### Reference
+* https://gist.github.com/rushilgupta/228dfdf379121cb9426d5e90d34c5b96
