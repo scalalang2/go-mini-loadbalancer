@@ -1,6 +1,9 @@
 ## Mini Load Balancer
 Mini Load Balancer written in Go language
 
+### Architecture
+![Architecture](/images/architecture.png)
+
 ### Execution Result
 * Number of workers: 10
 * Number of real-time requests: 1,000
