@@ -13,17 +13,17 @@ type Request struct {
 	resp chan float64
 }
 
-type Work struct {
+type Worker struct {
 	idx int
 	wok chan Request
 	pending int
 }
 
-type Pool []*Work
+type Pool []*Worker
 
 type Balancer struct {
 	pool Pool
-	done chan *Work
+	done chan *Worker
 }
 
 // Heap 인터페이스 구현 (Duck Typing)
@@ -42,7 +42,7 @@ func (p *Pool) Swap(i, j int) {
 
 func (p *Pool) Push(x interface{}) {
 	n := len(*p)
-	item := x.(*Work) // type casting
+	item := x.(*Worker) // type casting
 	item.idx = n
 	*p = append(*p, item)
 }
@@ -71,13 +71,13 @@ func (b *Balancer) balance(req chan Request) {
 }
 
 func (b *Balancer) dispatch(req Request) {
-	w := heap.Pop(&b.pool).(*Work)
+	w := heap.Pop(&b.pool).(*Worker)
 	w.wok <- req
 	w.pending++
 	heap.Push(&b.pool, w)
 }
 
-func (b *Balancer) completed(w *Work) {
+func (b *Balancer) completed(w *Worker) {
 	w.pending--
 	heap.Remove(&b.pool, w.idx)
 	heap.Push(&b.pool, w)
@@ -99,7 +99,7 @@ func (b *Balancer) print() {
 }
 
 // Work 구현
-func (w *Work) doWork(done chan *Work) {
+func (w *Worker) doWork(done chan *Worker) {
 	for {
 		req := <-w.wok
 		req.resp <- math.Sin(float64(req.data))
@@ -110,14 +110,16 @@ func (w *Work) doWork(done chan *Work) {
 func InitBalancer() *Balancer {
 	nWorker := 10
 	nRequester := 1000
-	done := make(chan *Work, nWorker)
+	done := make(chan *Worker, nWorker)
 	b := &Balancer {
+		// second parameter: length (number of elements in slice)
+		// third parameter: capacity (number of elements in the underlying array)
 		make(Pool, 0, nWorker),
 		done,
 	}
 
 	for i := 0; i < nWorker; i++ {
-		w := &Work { wok: make(chan Request, nRequester) }
+		w := &Worker { wok: make(chan Request, nRequester) }
 		heap.Push(&b.pool, w)
 		go w.doWork(b.done)
 	}
