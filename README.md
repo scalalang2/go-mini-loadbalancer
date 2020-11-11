@@ -1,7 +1,7 @@
 ## Mini Load Balancer
 Mini Load Balancer written in Go language
 
-### Architecture
+### Structure
 ![Architecture](/images/architecture.png)
 
 ### Execution Result
