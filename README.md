@@ -2,7 +2,7 @@
 Mini Load Balancer written in Go language
 
 ### Structure
-![Architecture](/images/architecture.png)
+![Architecture](/images/structure.png)
 
 ### Execution Result
 * Number of workers: 10
